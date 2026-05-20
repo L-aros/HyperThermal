@@ -698,11 +698,13 @@ async function save() {
     `  "max_charge_current": ${settings.max_charge_current}`,
     '}',
   ];
-  await exec(`printf '' > ${CONF}`);
+  const TMP = CONF + '.tmp';
+  await exec(`printf '' > ${TMP}`);
   for (const line of lines) {
     const esc = line.replace(/'/g, "'\\''");
-    await exec(`printf '%s\\n' '${esc}' >> ${CONF}`);
+    await exec(`printf '%s\\n' '${esc}' >> ${TMP}`);
   }
+  await exec(`mv ${TMP} ${CONF}`);
   updateSubs();
   toast('✓ 已保存');
 }

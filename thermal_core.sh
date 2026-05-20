@@ -16,6 +16,7 @@ log() {
 
 # JSON字段读取（每行一个字段的标准格式）
 json_get() {
+    [ -s "$CONFDIR/settings.json" ] || return
     grep "\"$1\"" "$CONFDIR/settings.json" 2>/dev/null \
         | sed 's/.*"'"$1"'"[[:space:]]*:[[:space:]]*//' \
         | tr -d '", ' | tr -d ',' | tail -1
