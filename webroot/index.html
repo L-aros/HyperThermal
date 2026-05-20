@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>HyperThermal</title>
+<style>
+:root {
+  --md-primary: #6750A4;
+  --md-on-primary: #fff;
+  --md-secondary: #625B71;
+  --md-surface: #1C1B1F;
+  --md-surface-1: #25232A;
+  --md-surface-2: #2B2930;
+  --md-surface-3: #302E37;
+  --md-on-surface: #E6E1E5;
+  --md-on-surface-var: #CAC4D0;
+  --md-outline: #49454F;
+  --md-outline-var: #3a3640;
+  --md-error: #F2B8B5;
+  --md-warn: #FFB74D;
+  --md-good: #81C995;
+  --radius-s: 8px;
+  --radius-m: 16px;
+  --radius-l: 24px;
+  --radius-xl: 28px;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family: 'Google Sans', -apple-system, system-ui, sans-serif;
+  background: var(--md-surface);
+  color: var(--md-on-surface);
+  min-height: 100vh;
+  padding-bottom: 32px;
+}
+
+/* ── Header ── */
+.header {
+  padding: 28px 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.header-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--md-surface-2);
+  border: 1px solid var(--md-outline-var);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12px;
+  color: var(--md-on-surface-var);
+  margin-bottom: 8px;
+}
+.header-chip .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--md-good);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; } 50% { opacity:.4; }
+}
+.header h1 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  background: linear-gradient(135deg, #D0BCFF, #9A82DB);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.device-name {
+  font-size: 13px;
+  color: var(--md-on-surface-var);
+  margin-top: 2px;
+}
+
+/* ── Status Cards ── */
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 20px 16px 0;
+}
+.stat-card {
+  background: var(--md-surface-2);
+  border-radius: var(--radius-l);
+  padding: 18px 16px 14px;
+  position: relative;
+  overflow: hidden;
+  transition: transform .15s;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--card-color, var(--md-primary));
+  opacity: .7;
+}
+.stat-card .icon {
+  font-size: 18px;
+  margin-bottom: 10px;
+  display: block;
+}
+.stat-card .value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--card-color, var(--md-on-surface));
+  transition: color .4s;
+}
+.stat-card .unit {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--md-on-surface-var);
+  margin-left: 2px;
+}
+.stat-card .label {
+  font-size: 11px;
+  color: var(--md-on-surface-var);
+  margin-top: 6px;
+  letter-spacing: .3px;
+}
+
+/* ── Mode Banner ── */
+.mode-banner {
+  margin: 12px 16px 0;
+  background: linear-gradient(135deg, #3B2F6B, #2D2640);
+  border: 1px solid #4a3d7a;
+  border-radius: var(--radius-l);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mode-banner .mode-label { font-size: 12px; color: #CAC4D0; }
+.mode-banner .mode-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #D0BCFF;
+  margin-top: 2px;
+}
+.mode-banner .mode-icon { font-size: 28px; }
+
+/* ── Section ── */
+.section { padding: 20px 16px 0; }
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--md-secondary);
+  padding: 0 4px;
+  margin-bottom: 10px;
+}
+
+/* ── Collapsible Card ── */
+.card {
+  background: var(--md-surface-2);
+  border-radius: var(--radius-xl);
+  margin-bottom: 10px;
+  overflow: hidden;
+  border: 1px solid var(--md-outline-var);
+  transition: border-color .2s;
+}
+.card.open { border-color: #4a3d7a; }
+.card-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 18px;
+  cursor: pointer;
+  user-select: none;
+  gap: 12px;
+}
+.card-header-icon {
+  width: 36px; height: 36px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.card-header-text { flex: 1; }
+.card-header-title { font-size: 14px; font-weight: 600; }
+.card-header-sub { font-size: 11px; color: var(--md-on-surface-var); margin-top: 1px; }
+.card-chevron {
+  font-size: 18px;
+  color: var(--md-on-surface-var);
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+}
+.card.open .card-chevron { transform: rotate(180deg); }
+.card-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .3s cubic-bezier(.4,0,.2,1);
+}
+.card.open .card-body { max-height: 1200px; }
+.card-inner { padding: 0 18px 18px; }
+
+/* ── Row ── */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--md-outline-var);
+}
+.row:last-child { border-bottom: none; }
+.row-left { flex: 1; }
+.row-label { font-size: 13px; }
+.row-desc { font-size: 11px; color: var(--md-on-surface-var); margin-top: 2px; }
+
+/* ── Switch ── */
+.switch { position:relative; width:48px; height:28px; flex-shrink:0; }
+.switch input { opacity:0; width:0; height:0; }
+.switch .track {
+  position:absolute; inset:0;
+  background: var(--md-outline);
+  border-radius:14px;
+  cursor:pointer;
+  transition: background .2s;
+}
+.switch input:checked + .track { background: var(--md-primary); }
+.switch .track::after {
+  content:'';
+  position:absolute;
+  width:20px; height:20px;
+  left:4px; top:4px;
+  background:#fff;
+  border-radius:50%;
+  transition: transform .2s cubic-bezier(.4,0,.2,1), width .1s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.4);
+}
+.switch input:checked + .track::after { transform: translateX(20px); }
+
+/* ── Mode Grid ── */
+.field-label { font-size: 12px; color: var(--md-on-surface-var); margin: 12px 0 6px; }
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.mode-btn {
+  padding: 8px 4px;
+  border-radius: 10px;
+  border: 1px solid var(--md-outline-var);
+  background: var(--md-surface-3);
+  color: var(--md-on-surface-var);
+  font-size: 11px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  line-height: 1.3;
+}
+.mode-btn.active {
+  border-color: var(--md-primary);
+  background: rgba(103,80,164,.2);
+  color: #D0BCFF;
+  font-weight: 600;
+}
+
+/* ── Input ── */
+input[type=number], input[type=text], select {
+  background: var(--md-surface-3);
+  border: 1px solid var(--md-outline-var);
+  border-radius: 10px;
+  color: var(--md-on-surface);
+  padding: 9px 12px;
+  font-size: 13px;
+  width: 100%;
+  margin-top: 6px;
+  outline: none;
+  transition: border-color .2s;
+}
+input:focus, select:focus { border-color: var(--md-primary); }
+select { appearance: none; }
+.input-row { display:flex; gap:8px; margin-top:6px; }
+.input-row input { flex:1; margin-top:0; }
+
+/* ── Tag ── */
+.tags { display:flex; flex-wrap:wrap; gap:6px; margin: 8px 0 4px; min-height:28px; }
+.tag {
+  display:inline-flex; align-items:center; gap:5px;
+  background: var(--md-surface-3);
+  border: 1px solid var(--md-outline-var);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--md-on-surface-var);
+}
+.tag-remove { cursor:pointer; font-size:13px; opacity:.6; line-height:1; }
+
+/* ── Button ── */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center;
+  padding: 9px 18px;
+  border-radius: 20px;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+}
+.btn:active { transform: scale(.97); }
+.btn-filled { background: var(--md-primary); color: var(--md-on-primary); }
+.btn-tonal { background: rgba(103,80,164,.25); color: #D0BCFF; }
+.btn-sm { padding: 6px 14px; font-size: 12px; }
+
+/* ── Toast ── */
+.toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(8px);
+  background: var(--md-surface-3);
+  border: 1px solid var(--md-outline);
+  color: var(--md-on-surface);
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-size: 13px;
+  opacity:0;
+  transition: opacity .25s, transform .25s;
+  pointer-events:none;
+  z-index:999;
+  white-space:nowrap;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── Divider ── */
+.divider { height:1px; background: var(--md-outline-var); margin: 4px 0; }
+</style>
+</head>
+<body>
+
+
+<!-- Header -->
+<div class="header">
+  <div class="header-chip"><span class="dot"></span><span id="daemonName">mi_thermald</span></div>
+  <h1>HyperThermal</h1>
+  <div class="device-name" id="deviceName">加载中...</div>
+</div>
+
+<!-- Status -->
+<div class="status-grid">
+  <div class="stat-card" style="--card-color:#FF8A65">
+    <span class="icon">🌡️</span>
+    <div><span class="value" id="sTemp">--</span><span class="unit">°C</span></div>
+    <div class="label">电池温度</div>
+  </div>
+  <div class="stat-card" style="--card-color:#81C995">
+    <span class="icon">⚡</span>
+    <div><span class="value" id="sPower">--</span><span class="unit">W</span></div>
+    <div class="label">充电功率</div>
+  </div>
+  <div class="stat-card" style="--card-color:#64B5F6">
+    <span class="icon">🔋</span>
+    <div><span class="value" id="sCapacity">--</span><span class="unit">%</span></div>
+    <div class="label">电量</div>
+  </div>
+  <div class="stat-card" style="--card-color:#CE93D8">
+    <span class="icon">📶</span>
+    <div><span class="value" id="sCurrent" style="font-size:20px">--</span><span class="unit">mA</span></div>
+    <div class="label">充电电流</div>
+  </div>
+</div>
+
+<!-- Mode Banner -->
+<div class="mode-banner">
+  <div>
+    <div class="mode-label">当前温控模式</div>
+    <div class="mode-value" id="sMode">--</div>
+  </div>
+  <div class="mode-icon" id="modeIcon">⏳</div>
+</div>
+
+<!-- 总开关 -->
+<div class="section">
+  <div class="section-title">控制</div>
+  <div class="card open" id="card-main">
+    <div class="card-header" onclick="toggleCard('main')">
+      <div class="card-header-icon" style="background:rgba(103,80,164,.2)">🔌</div>
+      <div class="card-header-text">
+        <div class="card-header-title">模块总开关</div>
+        <div class="card-header-sub" id="mainSub">运行中</div>
+      </div>
+      <label class="switch" onclick="event.stopPropagation()">
+        <input type="checkbox" id="enabled" onchange="save()">
+        <span class="track"></span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- 充电场景 -->
+<div class="section">
+  <div class="section-title">场景</div>
+  <div class="card" id="card-charge">
+    <div class="card-header" onclick="toggleCard('charge')">
+      <div class="card-header-icon" style="background:rgba(129,201,149,.15)">⚡</div>
+      <div class="card-header-text">
+        <div class="card-header-title">充电场景</div>
+        <div class="card-header-sub" id="chargeSub">点击展开</div>
+      </div>
+      <label class="switch" onclick="event.stopPropagation()">
+        <input type="checkbox" id="charge_mode" onchange="save();updateSubs()">
+        <span class="track"></span>
+      </label>
+      <span class="card-chevron">⌄</span>
+    </div>
+    <div class="card-body">
+      <div class="card-inner">
+        <div class="field-label">亮屏充电档位</div>
+        <div class="mode-grid" id="chargeLevelGrid"></div>
+        <div class="field-label">息屏充电档位</div>
+        <div class="mode-grid" id="sleepLevelGrid"></div>
+        <div class="field-label">定时切换（开始时 → 结束时 → 档位）</div>
+        <div class="input-row">
+          <input type="number" id="time_start" placeholder="开始" min="0" max="23" onchange="save()">
+          <input type="number" id="time_end" placeholder="结束" min="0" max="23" onchange="save()">
+          <select id="time_level" onchange="save()" style="margin-top:0">
+            <option value="unlimited">无限制</option>
+            <option value="level_1">一档</option>
+            <option value="level_2">二档</option>
+            <option value="level_3">三档</option>
+            <option value="level_4">四档</option>
+            <option value="level_5">五档</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 游戏场景 -->
+  <div class="card" id="card-game">
+    <div class="card-header" onclick="toggleCard('game')">
+      <div class="card-header-icon" style="background:rgba(206,147,216,.15)">🎮</div>
+      <div class="card-header-text">
+        <div class="card-header-title">游戏场景</div>
+        <div class="card-header-sub" id="gameSub">点击展开</div>
+      </div>
+      <label class="switch" onclick="event.stopPropagation()">
+        <input type="checkbox" id="game_mode" onchange="save();updateSubs()">
+        <span class="track"></span>
+      </label>
+      <span class="card-chevron">⌄</span>
+    </div>
+    <div class="card-body">
+      <div class="card-inner">
+        <div class="field-label">游戏温控档位</div>
+        <div class="mode-grid" id="gameLevelGrid"></div>
+        <div class="divider" style="margin:14px 0 2px"></div>
+        <div class="row">
+          <div class="row-left">
+            <div class="row-label">游戏时旁路供电</div>
+            <div class="row-desc">游戏充电时停止对电池充电</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="game_bypass" onchange="save()"><span class="track"></span></label>
+        </div>
+        <div class="row">
+          <div class="row-left">
+            <div class="row-label">锁定刷新率</div>
+            <div class="row-desc">0 = 不锁定</div>
+          </div>
+          <input type="number" id="game_fps" min="0" style="width:80px;margin-top:0;text-align:center">
+        </div>
+        <div class="field-label">游戏应用列表</div>
+        <div class="tags" id="gameAppTags"></div>
+        <div class="input-row">
+          <input type="text" id="newApp" placeholder="包名，如 com.tencent.tmgp.sgame" style="margin-top:0">
+          <button class="btn btn-tonal btn-sm" onclick="addApp()">添加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 旁路供电 -->
+<div class="section">
+  <div class="section-title">旁路供电</div>
+  <div class="card" id="card-bypass">
+    <div class="card-header" onclick="toggleCard('bypass')">
+      <div class="card-header-icon" style="background:rgba(255,183,77,.15)">🔋</div>
+      <div class="card-header-text">
+        <div class="card-header-title">旁路供电设置</div>
+        <div class="card-header-sub" id="bypassSub">点击展开</div>
+      </div>
+      <span class="card-chevron">⌄</span>
+    </div>
+    <div class="card-body">
+      <div class="card-inner">
+        <div class="row">
+          <div class="row-left">
+            <div class="row-label">手动旁路</div>
+            <div class="row-desc">立即生效，充电器直接供电</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="bypass_manual" onchange="toggleBypass()"><span class="track"></span></label>
+        </div>
+        <div class="divider" style="margin:4px 0"></div>
+        <div class="field-label">温度旁路 — 开启温度 °C（0=关闭）</div>
+        <input type="number" id="bypass_temp_on" placeholder="如 45" min="0" max="60" onchange="save()">
+        <div class="field-label">温度旁路 — 关闭温度 °C</div>
+        <input type="number" id="bypass_temp_off" placeholder="如 40" min="0" max="60" onchange="save()">
+        <div class="field-label">电量旁路 — 电量 ≥ 时开启（0=关闭）</div>
+        <input type="number" id="bypass_level" placeholder="如 80" min="0" max="100" onchange="save()">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 高级设置 -->
+<div class="section">
+  <div class="section-title">高级</div>
+  <div class="card" id="card-advanced">
+    <div class="card-header" onclick="toggleCard('advanced')">
+      <div class="card-header-icon" style="background:rgba(100,181,246,.15)">⚙️</div>
+      <div class="card-header-text">
+        <div class="card-header-title">电流控制 / 普通场景</div>
+        <div class="card-header-sub">点击展开</div>
+      </div>
+      <span class="card-chevron">⌄</span>
+    </div>
+    <div class="card-body">
+      <div class="card-inner">
+        <div class="field-label">充电电流限制 μA（0=不限制）</div>
+        <input type="number" id="current_limit" placeholder="0" min="0" onchange="save()">
+        <div class="field-label">设备最大充电电流 μA</div>
+        <input type="number" id="max_charge_current" placeholder="22000000" min="0" onchange="save()">
+        <div class="divider" style="margin:14px 0 2px"></div>
+        <div class="field-label">普通场景温控（非充电/非游戏）</div>
+        <div class="mode-grid" id="defaultModeGrid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+const MODDIR = '/data/adb/modules/HyperThermal';
+const CONF = MODDIR + '/config/settings.json';
+let settings = {};
+let gameApps = [];
+
+const MODES = [
+  {id:'default',label:'系统\n默认'},
+  {id:'unlimited',label:'无\n限制'},
+  {id:'level_1',label:'一档'},
+  {id:'level_2',label:'二档'},
+  {id:'level_3',label:'三档'},
+  {id:'level_4',label:'四档'},
+  {id:'level_5',label:'五档'},
+];
+const MODES_NO_DEFAULT = MODES.slice(1);
+
+const MODE_NAMES = {
+  default:'系统默认', unlimited:'无限制',
+  level_1:'一档', level_2:'二档', level_3:'三档',
+  level_4:'四档', level_5:'五档', bypass:'旁路供电',
+  disabled:'已禁用', off:'已关闭'
+};
+const MODE_ICONS = {
+  default:'🔄', unlimited:'🚀', level_1:'1️⃣', level_2:'2️⃣',
+  level_3:'3️⃣', level_4:'4️⃣', level_5:'5️⃣', bypass:'🔋',
+  disabled:'⛔', off:'⭕'
+};
+
+function exec(cmd) {
+  return new Promise((resolve) => {
+    const cb = `cb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    window[cb] = (errno, stdout, stderr) => {
+      delete window[cb];
+      resolve({ errno, stdout: stdout || '', stderr: stderr || '' });
+    };
+    try { ksu.exec(cmd, '{}', cb); }
+    catch(e) { delete window[cb]; resolve({ errno: -1, stdout: '', stderr: String(e) }); }
+  });
+}
+
+function toast(msg, dur = 2000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ── Card toggle ──
+function toggleCard(id) {
+  const card = document.getElementById('card-' + id);
+  card.classList.toggle('open');
+}
+
+// ── Mode grids ──
+function renderModeGrid(containerId, modes, currentValue, onSelect) {
+  document.getElementById(containerId).innerHTML = modes.map(m =>
+    `<div class="mode-btn${currentValue===m.id?' active':''}" onclick="${onSelect}('${m.id}')">${m.label}</div>`
+  ).join('');
+}
+
+function selectChargeLevel(id) { settings.charge_level = id; renderModeGrid('chargeLevelGrid', MODES_NO_DEFAULT, id, 'selectChargeLevel'); save(); }
+function selectSleepLevel(id)  { settings.sleep_level  = id; renderModeGrid('sleepLevelGrid',  MODES_NO_DEFAULT, id, 'selectSleepLevel');  save(); }
+function selectGameLevel(id)   { settings.game_level   = id; renderModeGrid('gameLevelGrid',   MODES_NO_DEFAULT, id, 'selectGameLevel');   save(); }
+function selectDefaultMode(id) { settings.default_mode = id; renderModeGrid('defaultModeGrid', MODES,            id, 'selectDefaultMode'); save(); }
+
+// ── Game apps ──
+function renderGameApps() {
+  const el = document.getElementById('gameAppTags');
+  if (!gameApps.length) {
+    el.innerHTML = '<span style="color:var(--md-on-surface-var);font-size:11px">未添加应用</span>';
+    return;
+  }
+  el.innerHTML = gameApps.map((app, i) =>
+    `<span class="tag">${app.split('.').pop()}<span class="tag-remove" onclick="removeApp(${i})" title="${app}">✕</span></span>`
+  ).join('');
+}
+
+function addApp() {
+  const input = document.getElementById('newApp');
+  const pkg = input.value.trim();
+  if (!pkg || !pkg.includes('.')) { toast('请输入有效包名'); return; }
+  if (gameApps.includes(pkg)) { toast('已存在'); return; }
+  gameApps.push(pkg);
+  input.value = '';
+  renderGameApps();
+  save();
+}
+
+function removeApp(i) {
+  gameApps.splice(i, 1);
+  renderGameApps();
+  save();
+}
+
+// ── Bypass manual ──
+async function toggleBypass() {
+  const on = document.getElementById('bypass_manual').checked;
+  await exec(`printf '%s' '${on ? 1 : 0}' > ${MODDIR}/config/bypass_manual`);
+  toast(on ? '旁路供电已开启' : '旁路供电已关闭');
+}
+
+// ── Sub-titles ──
+function updateSubs() {
+  const cm = document.getElementById('charge_mode').checked;
+  const gm = document.getElementById('game_mode').checked;
+  document.getElementById('chargeSub').textContent = cm
+    ? `亮屏: ${MODE_NAMES[settings.charge_level]||'--'}  息屏: ${MODE_NAMES[settings.sleep_level]||'--'}`
+    : '已关闭';
+  document.getElementById('gameSub').textContent = gm
+    ? `档位: ${MODE_NAMES[settings.game_level]||'--'}`
+    : '已关闭';
+  const bt = document.getElementById('bypass_temp_on').value;
+  const bl = document.getElementById('bypass_level').value;
+  const bm = document.getElementById('bypass_manual').checked;
+  const parts = [];
+  if (bm) parts.push('手动');
+  if (bt > 0) parts.push(`温度≥${bt}°C`);
+  if (bl > 0) parts.push(`电量≥${bl}%`);
+  document.getElementById('bypassSub').textContent = parts.length ? parts.join(' / ') : '点击展开';
+}
+
+// ── Save ──
+async function save() {
+  settings.enabled = document.getElementById('enabled').checked;
+  settings.charge_mode = document.getElementById('charge_mode').checked;
+  settings.game_mode = document.getElementById('game_mode').checked;
+  settings.game_bypass = document.getElementById('game_bypass').checked;
+  settings.game_fps = parseInt(document.getElementById('game_fps').value) || 0;
+  settings.bypass_temp_on = parseInt(document.getElementById('bypass_temp_on').value) || 0;
+  settings.bypass_temp_off = parseInt(document.getElementById('bypass_temp_off').value) || 0;
+  settings.bypass_level = parseInt(document.getElementById('bypass_level').value) || 0;
+  settings.current_limit = parseInt(document.getElementById('current_limit').value) || 0;
+  settings.max_charge_current = parseInt(document.getElementById('max_charge_current').value) || 22000000;
+  settings.time_start = parseInt(document.getElementById('time_start').value) || 0;
+  settings.time_end = parseInt(document.getElementById('time_end').value) || 0;
+  settings.time_level = document.getElementById('time_level').value;
+  settings.game_apps = gameApps.join('|');
+
+  const lines = [
+    '{',
+    `  "enabled": ${settings.enabled},`,
+    `  "charge_mode": ${settings.charge_mode},`,
+    `  "charge_level": "${settings.charge_level}",`,
+    `  "sleep_level": "${settings.sleep_level}",`,
+    `  "time_start": ${settings.time_start},`,
+    `  "time_end": ${settings.time_end},`,
+    `  "time_level": "${settings.time_level}",`,
+    `  "game_mode": ${settings.game_mode},`,
+    `  "game_level": "${settings.game_level}",`,
+    `  "game_apps": "${settings.game_apps}",`,
+    `  "game_fps": ${settings.game_fps},`,
+    `  "game_bypass": ${settings.game_bypass},`,
+    `  "bypass_temp_on": ${settings.bypass_temp_on},`,
+    `  "bypass_temp_off": ${settings.bypass_temp_off},`,
+    `  "bypass_level": ${settings.bypass_level},`,
+    `  "default_mode": "${settings.default_mode}",`,
+    `  "current_limit": ${settings.current_limit},`,
+    `  "max_charge_current": ${settings.max_charge_current}`,
+    '}',
+  ];
+  await exec(`printf '' > ${CONF}`);
+  for (const line of lines) {
+    const esc = line.replace(/'/g, "'\\''");
+    await exec(`printf '%s\\n' '${esc}' >> ${CONF}`);
+  }
+  updateSubs();
+  toast('✓ 已保存');
+}
+
+// ── Load ──
+async function load() {
+  const r = await exec(`cat ${CONF} 2>/dev/null`);
+  if (r.stdout.trim()) {
+    try { settings = JSON.parse(r.stdout.trim()); } catch(e) { settings = {}; }
+  }
+
+  document.getElementById('enabled').checked = settings.enabled !== false;
+  document.getElementById('charge_mode').checked = settings.charge_mode !== false;
+  document.getElementById('game_mode').checked = settings.game_mode !== false;
+  document.getElementById('game_bypass').checked = settings.game_bypass === true;
+  document.getElementById('game_fps').value = settings.game_fps || 0;
+  document.getElementById('bypass_temp_on').value = settings.bypass_temp_on || 0;
+  document.getElementById('bypass_temp_off').value = settings.bypass_temp_off || 0;
+  document.getElementById('bypass_level').value = settings.bypass_level || 0;
+  document.getElementById('current_limit').value = settings.current_limit || 0;
+  document.getElementById('max_charge_current').value = settings.max_charge_current || 22000000;
+  document.getElementById('time_start').value = settings.time_start || 0;
+  document.getElementById('time_end').value = settings.time_end || 0;
+  document.getElementById('time_level').value = settings.time_level || 'level_1';
+
+  gameApps = (settings.game_apps || '').split('|').filter(Boolean);
+  renderGameApps();
+  renderModeGrid('chargeLevelGrid', MODES_NO_DEFAULT, settings.charge_level || 'unlimited', 'selectChargeLevel');
+  renderModeGrid('sleepLevelGrid',  MODES_NO_DEFAULT, settings.sleep_level  || 'level_1',   'selectSleepLevel');
+  renderModeGrid('gameLevelGrid',   MODES_NO_DEFAULT, settings.game_level   || 'unlimited', 'selectGameLevel');
+  renderModeGrid('defaultModeGrid', MODES,            settings.default_mode || 'default',   'selectDefaultMode');
+
+  // 旁路手动状态
+  const bp = await exec(`cat ${MODDIR}/config/bypass_manual 2>/dev/null`);
+  document.getElementById('bypass_manual').checked = bp.stdout.trim() === '1';
+
+  // 设备信息
+  const rt = await exec(`cat ${MODDIR}/config/runtime.json 2>/dev/null`);
+  if (rt.stdout.trim()) {
+    try {
+      const info = JSON.parse(rt.stdout.trim());
+      const osVer = info.os_version ? `HyperOS ${info.os_version}` : 'MIUI';
+      document.getElementById('deviceName').textContent = `${info.market_name || info.model}  ·  ${osVer}`;
+      document.getElementById('daemonName').textContent = info.thermal_daemon || 'mi_thermald';
+    } catch(e) {}
+  }
+
+  updateSubs();
+}
+
+// ── Refresh status ──
+let prevPower = null;
+async function refreshStatus() {
+  const r = await exec(`cat ${MODDIR}/config/status.json 2>/dev/null`);
+  if (!r.stdout.trim()) return;
+  let s;
+  try { s = JSON.parse(r.stdout.trim()); } catch(e) { return; }
+
+  const tempC = s.temp / 10;
+  const tempEl = document.getElementById('sTemp');
+  tempEl.textContent = tempC.toFixed(1);
+  tempEl.style.color = tempC >= 45 ? 'var(--md-error)' : tempC >= 40 ? 'var(--md-warn)' : 'var(--md-good)';
+
+  // 功率计算：voltage(μV) × |current(μA)| / 1e12 = W
+  let powerText = '--';
+  if (s.voltage && s.voltage > 0 && s.current && s.current < 0) {
+    const watts = (s.voltage / 1e6) * (Math.abs(s.current) / 1e6);
+    powerText = watts.toFixed(1);
+  } else if (s.status === 'Discharging') {
+    powerText = '放电';
+  } else if (s.status === 'Full') {
+    powerText = '已充满';
+  }
+  document.getElementById('sPower').textContent = powerText;
+
+  const mA = Math.abs(Math.round(s.current / 1000));
+  document.getElementById('sCurrent').textContent = s.current < 0 ? mA : (s.status === 'Charging' ? mA : '--');
+  document.getElementById('sCapacity').textContent = s.capacity;
+
+  const mode = s.mode || 'default';
+  document.getElementById('sMode').textContent = MODE_NAMES[mode] || mode;
+  document.getElementById('modeIcon').textContent = MODE_ICONS[mode] || '⏳';
+
+  // 总开关副标题
+  document.getElementById('mainSub').textContent =
+    s.status === 'Charging' ? `充电中 · ${s.capacity}%` :
+    s.status === 'Full' ? '已充满' : `放电中 · ${s.capacity}%`;
+}
+
+load();
+refreshStatus();
+setInterval(refreshStatus, 3000);
+</script>
+</body>
+</html>

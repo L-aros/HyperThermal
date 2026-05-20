@@ -1,0 +1,6 @@
+id=HyperThermal
+name=HyperThermal - 动态温控
+version=v1.0.0
+versionCode=100
+author=Laros&top大佬
+description=[ 状态：初始化中 ] 适配HyperOS全版本的动态温控模块，支持WebUI可视化配置，充电场景/游戏场景/旁路供电/电流控制

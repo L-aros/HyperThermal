@@ -1,0 +1,9 @@
+* text=auto
+*.sh text eol=lf
+*.prop text eol=lf
+*.json text eol=lf
+*.conf text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+update-binary text eol=lf
+update-script text eol=lf
