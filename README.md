@@ -3,13 +3,13 @@
 ![版本](https://img.shields.io/badge/版本-v1.0.0-6750A4?style=flat-square)
 ![平台](https://img.shields.io/badge/平台-HyperOS%20%7C%20MIUI-blue?style=flat-square)
 ![框架](https://img.shields.io/badge/框架-KernelSU%20%7C%20APatch-orange?style=flat-square)
-![作者](https://img.shields.io/badge/作者-Laros%20%26%20top大佬-green?style=flat-square)
+![作者](https://img.shields.io/badge/作者-L-aros%20%26%20top大佬-green?style=flat-square)
 
 > 适配 HyperOS / MIUI 全版本的动态温控 KSU 模块，带 WebUI 可视化配置界面
 
 ## 简介
 
-HyperThermal 是一个适配 HyperOS / MIUI 全版本的 KernelSU 动态温控模块。通过动态替换 MIUI 云温控配置文件，实现在充电、游戏等不同场景下自动切换温控策略，支持旁路供电和电流控制。提供 WebUI 可视化界面，无需手动编辑配置文件。
+HyperThermal 是一个适配 HyperOS / MIUI 全版本的动态温控模块。通过动态替换 MIUI 云温控配置文件，实现在充电、游戏等不同场景下自动切换温控策略，支持旁路供电和电流控制。提供 WebUI 可视化界面，无需手动编辑配置文件。
 
 ---
 
@@ -216,21 +216,27 @@ adb shell "su -c 'cat /data/adb/modules/HyperThermal/log.log'"
 ## 常见问题
 
 **Q：安装后模块显示"机型不支持"？**
+
 A：设备不支持 MIUI 云温控机制（非小米/红米设备，或系统版本过旧）。
 
 **Q：WebUI 打开后显示"加载中"不变化？**
+
 A：模块可能还未完成启动（开机后约 10 秒），等待后刷新页面。
 
 **Q：修改档位后没有效果？**
+
 A：检查"充电时启用温控"开关是否已开启；确认设备处于充电状态；等待 3~5 秒让轮询生效。
 
 **Q：旁路供电开启后电量还在上涨？**
+
 A：部分机型旁路供电仍有小电流，属正常现象。可尝试开启"电流控制"并设置较小电流值配合使用。
 
 **Q：与其他模块冲突怎么办？**
+
 A：本模块与控制充电电流类模块冲突（如充电管理类模块）。建议禁用冲突模块，保留本模块。旧版 MiuiVariableThermal 必须禁用。
 
 **Q：如何完全卸载？**
+
 A：在 KSU 管理器中删除模块，重启后自动恢复系统默认温控。
 
 ---
