@@ -3,7 +3,7 @@
 ![版本](https://img.shields.io/badge/版本-v1.0.0-6750A4?style=flat-square)
 ![平台](https://img.shields.io/badge/平台-HyperOS%20%7C%20MIUI-blue?style=flat-square)
 ![框架](https://img.shields.io/badge/框架-KernelSU%20%7C%20APatch-orange?style=flat-square)
-![作者](https://img.shields.io/badge/作者-L-aros%20%26%20top大佬-green?style=flat-square)
+![作者](https://img.shields.io/badge/作者-Laros%20%26%20top大佬-green?style=flat-square)
 
 > 适配 HyperOS / MIUI 全版本的动态温控 KSU 模块，带 WebUI 可视化配置界面
 
