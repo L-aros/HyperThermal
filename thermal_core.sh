@@ -81,16 +81,14 @@ update_status() {
 
 # 应用零档（完全无限制）：使用t_blank文件
 apply_unlimited() {
-    local current_mode=$(cat "$CONFDIR/current_mode" 2>/dev/null)
-    local changed=0
-    # 检查thermal-normal.conf的md5
     local cur_md5=$(md5sum "/data/vendor/thermal/config/thermal-normal.conf" 2>/dev/null | cut -d' ' -f1)
-    [ "$cur_md5" != "$MD5_BLANK" ] && changed=1
-    if [ "$changed" = "1" ] || [ "$current_mode" != "unlimited" ]; then
+    if [ "$cur_md5" != "$MD5_BLANK" ]; then
         cp "$MODDIR/t_blank" "/data/vendor/thermal/config/thermal-normal.conf"
         write_map_files
-        stat_decrypt_1=$(stat -c %Y '/data/vendor/thermal/decrypt.txt' 2>/dev/null)
         start_thermal_program
+    fi
+    local current_mode=$(cat "$CONFDIR/current_mode" 2>/dev/null)
+    if [ "$current_mode" != "unlimited" ]; then
         echo "unlimited" > "$CONFDIR/current_mode"
         update_status "零档-无限制"
         log "切换: 零档-无限制"
@@ -102,20 +100,20 @@ apply_level() {
     local lvl="$1"
     local conf="$MODDIR/thermal/${lvl}/thermal-scene.conf"
     local mode_id="level_${lvl}"
-    local current_mode=$(cat "$CONFDIR/current_mode" 2>/dev/null)
     local conf_size=$(wc -c < "$conf" 2>/dev/null || echo 0)
     if [ "$conf_size" -lt 100 ]; then
-        # 档位文件无效，降级为无限制
         apply_unlimited
         return
     fi
     local cur_md5=$(md5sum "/data/vendor/thermal/config/thermal-normal.conf" 2>/dev/null | cut -d' ' -f1)
     local target_md5=$(md5sum "$conf" | cut -d' ' -f1)
-    if [ "$cur_md5" != "$target_md5" ] || [ "$current_mode" != "$mode_id" ]; then
+    if [ "$cur_md5" != "$target_md5" ]; then
         cp "$conf" "/data/vendor/thermal/config/thermal-normal.conf"
         write_map_files
-        stat_decrypt_1=$(stat -c %Y '/data/vendor/thermal/decrypt.txt' 2>/dev/null)
         start_thermal_program
+    fi
+    local current_mode=$(cat "$CONFDIR/current_mode" 2>/dev/null)
+    if [ "$current_mode" != "$mode_id" ]; then
         echo "$mode_id" > "$CONFDIR/current_mode"
         update_status "${lvl}档温控"
         log "切换: ${lvl}档温控"
