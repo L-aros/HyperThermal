@@ -55,6 +55,10 @@ start_thermal_program() {
     sleep 1
     start "$THERMAL_DAEMON" 2>/dev/null
     sleep 1
+    # mi_thermald重启后会重置充电电流，立即恢复到最大值
+    local max_c=$(json_get "max_charge_current")
+    [ -z "$max_c" ] || [ "$max_c" = "0" ] && max_c=22000000
+    [ "$(cat $CONFDIR/bypass_active 2>/dev/null)" != "1" ] && set_charge_current "$max_c"
     log "重启温控进程: $THERMAL_DAEMON"
 }
 
