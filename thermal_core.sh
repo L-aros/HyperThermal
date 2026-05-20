@@ -270,6 +270,7 @@ log "thermal_core 启动 daemon=$THERMAL_DAEMON"
 
 # ── 主循环 ────────────────────────────────────────────
 
+LAST_CHARGING=0
 while true; do
     # 模块禁用检查
     if [ -f "$MODDIR/disable" ]; then
@@ -308,6 +309,13 @@ while true; do
 
     IS_CHARGING=0
     case "$BAT_STATUS" in Charging|Full) IS_CHARGING=1 ;; esac
+
+    # 防抖：mi_thermald重启瞬间充电状态会短暂中断，跳过本轮
+    if [ "$IS_CHARGING" = "0" ] && [ "$LAST_CHARGING" = "1" ]; then
+        LAST_CHARGING=0
+        sleep 3; continue
+    fi
+    LAST_CHARGING=$IS_CHARGING
 
     BYPASS_ACTIVE=$(cat "$CONFDIR/bypass_active" 2>/dev/null)
     BYPASS_TRIGGER=$(cat "$CONFDIR/bypass_trigger" 2>/dev/null)
