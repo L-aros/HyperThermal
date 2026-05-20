@@ -411,7 +411,7 @@ while true; do
             apply_mode "default"
         fi
 
-        # 电流限制（旁路时不限制）
+        # 功率/电流限制（旁路时不限制，每轮强制写入防止mi_thermald覆盖）
         CURRENT_LIMIT=$(json_get "current_limit")
         if [ -n "$CURRENT_LIMIT" ] && [ "$CURRENT_LIMIT" -gt 0 ] 2>/dev/null; then
             [ "$BYPASS_ACTIVE" != "1" ] && set_charge_current "$CURRENT_LIMIT"

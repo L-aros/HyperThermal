@@ -521,8 +521,12 @@ select { appearance: none; }
     </div>
     <div class="card-body">
       <div class="card-inner">
-        <div class="field-label">充电电流限制 μA（0=不限制）</div>
-        <input type="number" id="current_limit" placeholder="0" min="0" onchange="save()">
+        <div class="field-label">最高充电功率限制</div>
+        <div class="mode-grid" id="powerLimitGrid" style="grid-template-columns:repeat(4,1fr)"></div>
+        <div class="field-label" style="margin-top:10px">自定义功率 W（0=不限制）</div>
+        <input type="number" id="power_limit_w" placeholder="如 67" min="0" max="200" onchange="setPowerCustom()">
+        <div class="row-desc" style="margin-top:4px" id="powerDesc">当前：不限制</div>
+        <div class="divider" style="margin:14px 0 2px"></div>
         <div class="field-label">设备最大充电电流 μA</div>
         <input type="number" id="max_charge_current" placeholder="22000000" min="0" onchange="save()">
         <div class="divider" style="margin:14px 0 2px"></div>
@@ -603,6 +607,49 @@ function selectSleepLevel(id)  { settings.sleep_level  = id; renderModeGrid('sle
 function selectGameLevel(id)   { settings.game_level   = id; renderModeGrid('gameLevelGrid',   MODES_NO_DEFAULT, id, 'selectGameLevel');   save(); }
 function selectDefaultMode(id) { settings.default_mode = id; renderModeGrid('defaultModeGrid', MODES,            id, 'selectDefaultMode'); save(); }
 
+// ── 功率限制 ──
+const POWER_PRESETS = [
+  {w:0, label:'不限'},
+  {w:120, label:'120W'},
+  {w:100, label:'100W'},
+  {w:67, label:'67W'},
+  {w:50, label:'50W'},
+  {w:33, label:'33W'},
+  {w:18, label:'18W'},
+  {w:10, label:'10W'},
+];
+
+function renderPowerGrid() {
+  const cur = settings.power_limit_w || 0;
+  document.getElementById('powerLimitGrid').innerHTML = POWER_PRESETS.map(p =>
+    `<div class="mode-btn${cur===p.w?' active':''}" onclick="selectPower(${p.w})">${p.label}</div>`
+  ).join('');
+}
+
+function selectPower(w) {
+  settings.power_limit_w = w;
+  document.getElementById('power_limit_w').value = w || '';
+  renderPowerGrid();
+  updatePowerDesc();
+  save();
+}
+
+function setPowerCustom() {
+  const w = parseInt(document.getElementById('power_limit_w').value) || 0;
+  settings.power_limit_w = w;
+  renderPowerGrid();
+  updatePowerDesc();
+  save();
+}
+
+function updatePowerDesc() {
+  const w = settings.power_limit_w || 0;
+  const el = document.getElementById('powerDesc');
+  if (!w) { el.textContent = '当前：不限制（设备最大功率）'; return; }
+  const ua = Math.round(w / 5 * 1000000);
+  el.textContent = `当前：限制 ${w}W（≈${(ua/1000000).toFixed(1)}A @ 5V 换算）`;
+}
+
 // ── Game apps ──
 function renderGameApps() {
   const el = document.getElementById('gameAppTags');
@@ -669,7 +716,7 @@ async function save() {
   settings.bypass_temp_on = parseInt(document.getElementById('bypass_temp_on').value) || 0;
   settings.bypass_temp_off = parseInt(document.getElementById('bypass_temp_off').value) || 0;
   settings.bypass_level = parseInt(document.getElementById('bypass_level').value) || 0;
-  settings.current_limit = parseInt(document.getElementById('current_limit').value) || 0;
+  settings.current_limit = settings.power_limit_w ? Math.round(settings.power_limit_w / 5 * 1000000) : 0;
   settings.max_charge_current = parseInt(document.getElementById('max_charge_current').value) || 22000000;
   settings.time_start = parseInt(document.getElementById('time_start').value) || 0;
   settings.time_end = parseInt(document.getElementById('time_end').value) || 0;
@@ -695,6 +742,7 @@ async function save() {
     `  "bypass_level": ${settings.bypass_level},`,
     `  "default_mode": "${settings.default_mode}",`,
     `  "current_limit": ${settings.current_limit},`,
+    `  "power_limit_w": ${settings.power_limit_w || 0},`,
     `  "max_charge_current": ${settings.max_charge_current}`,
     '}',
   ];
@@ -724,7 +772,9 @@ async function load() {
   document.getElementById('bypass_temp_on').value = settings.bypass_temp_on || 0;
   document.getElementById('bypass_temp_off').value = settings.bypass_temp_off || 0;
   document.getElementById('bypass_level').value = settings.bypass_level || 0;
-  document.getElementById('current_limit').value = settings.current_limit || 0;
+  document.getElementById('power_limit_w').value = settings.power_limit_w || 0;
+  renderPowerGrid();
+  updatePowerDesc();
   document.getElementById('max_charge_current').value = settings.max_charge_current || 22000000;
   document.getElementById('time_start').value = settings.time_start || 0;
   document.getElementById('time_end').value = settings.time_end || 0;

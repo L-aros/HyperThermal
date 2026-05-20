@@ -16,5 +16,6 @@
   "bypass_level": 0,
   "default_mode": "default",
   "current_limit": 0,
+  "power_limit_w": 0,
   "max_charge_current": 22000000
 }
