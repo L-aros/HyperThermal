@@ -248,6 +248,7 @@ select { appearance: none; }
 
 /* ── Power Grid ── */
 .power-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin: 10px 0; }
+.power-grid .chip { text-align: center; display: flex; align-items: center; justify-content: center; }
 </style>
 </head>
 <body>
@@ -399,10 +400,9 @@ select { appearance: none; }
   </div>
   <div class="expand-body" id="expand-power">
     <div class="expand-inner">
+      <div class="field-label">最高充电功率</div>
       <div class="power-grid" id="powerGrid"></div>
-      <div class="field-label">自定义功率 W</div>
-      <input type="number" id="power_limit_w" min="0" max="200" placeholder="0=不限制" onchange="setPowerCustom()">
-      <div class="field-label">设备最大充电电流 μA</div>
+      <div class="field-label" style="margin-top:16px">设备最大充电电流 μA</div>
       <input type="number" id="max_charge_current" placeholder="22000000" onchange="save()">
       <div class="field-label" style="margin-top:16px">普通场景温控</div>
       <div class="chips" id="defaultModeChips"></div>
@@ -419,7 +419,7 @@ let settings={}, gameApps=[];
 
 const LEVELS=[{id:'unlimited',l:'无限制'},{id:'level_1',l:'一档'},{id:'level_2',l:'二档'},{id:'level_3',l:'三档'},{id:'level_4',l:'四档'},{id:'level_5',l:'五档'}];
 const MODES=[{id:'default',l:'系统默认'},...LEVELS];
-const POWERS=[{w:0,l:'不限'},{w:120,l:'120W'},{w:100,l:'100W'},{w:67,l:'67W'},{w:50,l:'50W'},{w:33,l:'33W'},{w:18,l:'18W'},{w:10,l:'10W'}];
+const POWERS=[{w:0,l:'不限',ua:22000000},{w:120,l:'120W',ua:22000000},{w:100,l:'100W',ua:18000000},{w:67,l:'67W',ua:12400000},{w:50,l:'50W',ua:9000000},{w:33,l:'33W',ua:6000000},{w:18,l:'18W',ua:3000000},{w:10,l:'10W',ua:1800000}];
 const MODE_NAMES={default:'默认',unlimited:'无限制',level_1:'一档',level_2:'二档',level_3:'三档',level_4:'四档',level_5:'五档',bypass:'旁路',off:'关闭'};
 
 function exec(cmd){return new Promise(r=>{const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);window[cb]=(e,o,s)=>{delete window[cb];r({errno:e,stdout:o||'',stderr:s||''})};try{ksu.exec(cmd,'{}',cb)}catch(x){delete window[cb];r({errno:-1,stdout:'',stderr:String(x)})}});}
@@ -447,8 +447,7 @@ function renderPowerGrid(){
   const cur=settings.power_limit_w||0;
   document.getElementById('powerGrid').innerHTML=POWERS.map(p=>`<div class="chip${cur===p.w?' active':''}" onclick="selectPower(${p.w})">${p.l}</div>`).join('');
 }
-function selectPower(w){settings.power_limit_w=w;document.getElementById('power_limit_w').value=w||'';renderPowerGrid();updatePowerSub();save();}
-function setPowerCustom(){settings.power_limit_w=parseInt(document.getElementById('power_limit_w').value)||0;renderPowerGrid();updatePowerSub();save();}
+function selectPower(w){settings.power_limit_w=w;renderPowerGrid();updatePowerSub();save();}
 function updatePowerSub(){const w=settings.power_limit_w||0;document.getElementById('powerSub').textContent=w?`限制 ${w}W`:'不限制';}
 
 // ── Game Apps ──
@@ -489,7 +488,7 @@ async function save(){
   settings.time_end=parseInt(document.getElementById('time_end').value)||0;
   settings.time_level=document.getElementById('time_level').value;
   settings.game_apps=gameApps.join('|');
-  settings.current_limit=settings.power_limit_w?Math.round(settings.power_limit_w/5*1000000):0;
+  settings.current_limit=(POWERS.find(p=>p.w===settings.power_limit_w)||{ua:0}).ua||0;
 
   const lines=['{',
     `  "enabled": ${settings.enabled},`,`  "charge_mode": ${settings.charge_mode},`,
@@ -526,7 +525,6 @@ async function load(){
   document.getElementById('time_start').value=settings.time_start||0;
   document.getElementById('time_end').value=settings.time_end||0;
   document.getElementById('time_level').value=settings.time_level||'level_1';
-  document.getElementById('power_limit_w').value=settings.power_limit_w||0;
   gameApps=(settings.game_apps||'').split('|').filter(Boolean);
   renderGameApps();
   renderChips('chargeLevelChips',LEVELS,settings.charge_level||'unlimited','selectChargeLevel');
