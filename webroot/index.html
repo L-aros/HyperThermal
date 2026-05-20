@@ -556,7 +556,7 @@ async function refreshStatus(){
   document.getElementById('sPower').textContent=pw;
   document.getElementById('sCapacity').textContent=s.capacity;
   document.getElementById('sMode').textContent=MODE_NAMES[s.mode]||s.mode||'--';
-  document.getElementById('mainSub').textContent=s.status==='Charging'?`充电中 · ${s.capacity}%`:s.status==='Full'?'已充满':`${s.capacity}%`;
+  document.getElementById('mainSub').textContent=s.status==='Charging'?'充电中':s.status==='Full'?'已充满':'放电中';
 }
 
 load();refreshStatus();setInterval(refreshStatus,3000);
