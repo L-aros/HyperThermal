@@ -45,40 +45,16 @@ delete_conf() {
     rm -rf /data/vendor/thermal/config/*
 }
 
-# 通过写入mvt.conf触发mi_thermald重读配置（旧版验证有效机制）
-program_data() {
-    chattr -R -i -a '/data/vendor/thermal' 2>/dev/null
-    stat_decrypt_2="$stat_decrypt_1"
-    decrypt_n=3
-    until [ "$stat_decrypt_1" != "$stat_decrypt_2" ] || [ "$decrypt_n" = "0" ]; do
-        echo "$(date +%F_%T)" > '/data/vendor/thermal/config/mvt.conf'
-        sleep 1
-        decrypt_n=$((decrypt_n - 1))
-        stat_decrypt_2=$(stat -c %Y '/data/vendor/thermal/decrypt.txt' 2>/dev/null)
-        [ -z "$stat_decrypt_2" ] && stat_decrypt_2="$stat_decrypt_1"
-    done
-}
-
-# 启动温控程序（先尝试触发，失败才stop/start）
+# 重启温控进程使配置生效
 start_thermal_program() {
-    program_data
-    if [ "$stat_decrypt_1" = "$stat_decrypt_2" ]; then
-        # 触发失败，强制重启进程
-        chown -R root:system '/data/vendor/thermal'
-        chcon -R 'u:object_r:thermal_data_file:s0' '/data/vendor/thermal'
-        stop "$THERMAL_DAEMON" 2>/dev/null
-        start "$THERMAL_DAEMON" 2>/dev/null
-        program_data
-        if [ "$stat_decrypt_1" = "$stat_decrypt_2" ]; then
-            log "警告：温控进程触发失败，机型可能不支持"
-            return 1
-        fi
-    fi
-    rm -f '/data/vendor/thermal/config/mvt.conf'
-    # 恢复SELinux context
     chown -R root:system '/data/vendor/thermal'
     chcon -R 'u:object_r:thermal_data_file:s0' '/data/vendor/thermal'
-    return 0
+    chmod -R 0771 '/data/vendor/thermal'
+    stop "$THERMAL_DAEMON" 2>/dev/null
+    sleep 1
+    start "$THERMAL_DAEMON" 2>/dev/null
+    sleep 1
+    log "重启温控进程: $THERMAL_DAEMON"
 }
 
 # 写入thermal-map文件（使用/system/vendor/etc路径，与mi_thermald一致）
